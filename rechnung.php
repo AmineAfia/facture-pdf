@@ -1,149 +1,122 @@
 <?php
-//============================================================+
-// License: GNU-LGPL v3 (http://www.gnu.org/copyleft/lesser.html)
-// -------------------------------------------------------------------
-// Copyright (C) 2016 Nils Reimers - PHP-Einfach.de
-// This is free software: you can redistribute it and/or modify it
-// under the terms of the GNU Lesser General Public License as
-// published by the Free Software Foundation, either version 3 of the
-// License, or (at your option) any later version.
-//
-// Nachfolgend erhaltet ihr basierend auf der open-source Library TCPDF (https://tcpdf.org/)
-// ein einfaches Script zur Erstellung von PDF-Dokumenten, hier am Beispiel einer Rechnung.
-// Das Aussehen der Rechnung ist mittels HTML definiert und wird per TCPDF in ein PDF-Dokument übersetzt. 
-// Die meisten HTML Befehle funktionieren sowie einige inline-CSS Befehle. Die Unterstützung für CSS ist 
-// aber noch stark eingeschränkt. TCPDF läuft ohne zusätzliche Software auf den meisten PHP-Installationen.
-// Gerne könnt ihr das Script frei anpassen und auch als Basis für andere dynamisch erzeugte PDF-Dokumente nutzen.
-// Im Ordner tcpdf/ befindet sich die Version 6.2.3 der Bibliothek. Unter https://tcpdf.org/ könnt ihr erfahren, ob 
-// eine aktuellere Variante existiert und diese ggf. einbinden.
-//
-// Weitere Infos: http://www.php-einfach.de/experte/php-codebeispiele/pdf-per-php-erstellen-pdf-rechnung/ | https://github.com/PHP-Einfach/pdf-rechnung/
 
+$num_facture = "743";
+$date_facture = date("d.m.Y");
+$date_livraison = date("d.m.Y");
+$auteur_pdf = "soufiane.com";
 
-$rechnungs_nummer = "743";
-$rechnungs_datum = date("d.m.Y");
-$lieferdatum = date("d.m.Y");
-$pdfAuthor = "PHP-Einfach.de";
-
-$rechnungs_header = '
+$facture_header = '
 <img src="logo.png">
 Soufiane Afia
 charika lmoubarika
 BP 15 Casablanca';
 
-$rechnungs_empfaenger = 'Max Musterman
+$destinataire_facture = 'Amine Afia
 Musterstraße 17
-12345 Musterstadt';
+12345 Heidelberg';
 
-$rechnungs_footer = "Wir bitten um eine Begleichung der Rechnung innerhalb von 14 Tagen nach Erhalt. Bitte Überweisen Sie den vollständigen Betrag an:
+$facture_footer = "Merci pour votre visite
 
-<b>Empfänger:</b> Meine Firma
-<b>IBAN</b>: DE85 745165 45214 12364
-<b>BIC</b>: C46X453AD";
+<b>ISGAEVENT</b>:";
 
-//Auflistung eurer verschiedenen Posten im Format [Produktbezeichnuns, Menge, Einzelpreis]
-$rechnungs_posten = array(
-	array("Produkt 1", 1, 42.50),
-	array("Produkt 2", 5, 5.20),
-	array("Produkt 3", 3, 10.00));
+//list des articles sous la forme: [Article, nombre, prix]
+$elements_de_facture = array(
+	array("Produit 1", 1, 42.50),
+	array("Produit 2", 5, 5.20),
+	array("Produit 3", 3, 10.00));
 
-//Höhe eurer Umsatzsteuer. 0.19 für 19% Umsatzsteuer
-$umsatzsteuer = 0.0; 
+//Höhe eurer taxe. 0.19 für 19% taxe
+$taxe = 0.0; 
 
-$pdfName = "Rechnung_".$rechnungs_nummer.".pdf";
+$pdfName = "Facture_".$num_facture.".pdf";
 
 
-//////////////////////////// Inhalt des PDFs als HTML-Code \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+//////////////////////////// Contenue de PDf en HTML \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
 
 
-// Erstellung des HTML-Codes. Dieser HTML-Code definiert das Aussehen eures PDFs.
-// tcpdf unterstützt recht viele HTML-Befehle. Die Nutzung von CSS ist allerdings
-// stark eingeschränkt.
+// Definir le theme de la facture en code HTML
+// tcpdf support la majority du syntax HTML (le sopport CSS est limiter)
 
 $html = '
 <table cellpadding="5" cellspacing="0" style="width: 100%; ">
 	<tr>
-		<td>'.nl2br(trim($rechnungs_header)).'</td>
-	   <td style="text-align: right">
-Rechnungsnummer '.$rechnungs_nummer.'<br>
-Rechnungsdatum: '.$rechnungs_datum.'<br>
-Lieferdatum: '.$lieferdatum.'<br>
+		<td>'.nl2br(trim($facture_header)).'</td>
+		<td style="text-align: right">
+			Num. Facture '.$num_facture.'<br>
+			Date: '.$date_facture.'<br>
+			Date de livraison: '.$date_livraison.'<br>
 		</td>
 	</tr>
-
 	<tr>
 		 <td style="font-size:1.3em; font-weight: bold;">
-<br><br>
-Rechnung
-<br>
+			<br><br>
+			Facture
+			<br>
 		 </td>
 	</tr>
-
-
 	<tr>
-		<td colspan="2">'.nl2br(trim($rechnungs_empfaenger)).'</td>
+		<td colspan="2">'.nl2br(trim($destinataire_facture)).'</td>
 	</tr>
 </table>
+
 <br><br><br>
 
 <table cellpadding="5" cellspacing="0" style="width: 100%;" border="0">
 	<tr style="background-color: #cccccc; padding:5px;">
-		<td style="padding:5px;"><b>Bezeichnung</b></td>
-		<td style="text-align: center;"><b>Menge</b></td>
-		<td style="text-align: center;"><b>Einzelpreis</b></td>
-		<td style="text-align: center;"><b>Preis</b></td>
+		<td style="padding:5px;"><b>Artice</b></td>
+		<td style="text-align: center;"><b>Nombre</b></td>
+		<td style="text-align: center;"><b>Prix de l\'unite</b></td>
+		<td style="text-align: center;"><b>Prix</b></td>
 	</tr>';
-			
-	
-$gesamtpreis = 0;
 
-foreach($rechnungs_posten as $posten) {
-	$menge = $posten[1];
-	$einzelpreis = $posten[2];
-	$preis = $menge*$einzelpreis;
-	$gesamtpreis += $preis;
+$prix_total = 0;
+
+foreach($elements_de_facture as $element) {
+	$nombre = $element[1];
+	$prix_unitaire = $element[2];
+	$prix = $nombre*$prix_unitaire;
+	$prix_total += $prix;
 	$html .= '<tr>
-                <td>'.$posten[0].'</td>
-				<td style="text-align: center;">'.$posten[1].'</td>		
-				<td style="text-align: center;">'.number_format($posten[2], 2, ',', '').' Euro</td>	
-                <td style="text-align: center;">'.number_format($preis, 2, ',', '').' Euro</td>
+                <td>'.$element[0].'</td>
+				<td style="text-align: center;">'.$element[1].'</td>		
+				<td style="text-align: center;">'.number_format($element[2], 2, ',', '').' MAD</td>	
+                <td style="text-align: center;">'.number_format($prix, 2, ',', '').' MAD</td>
               </tr>';
 }
 $html .="</table>";
 
 
-
 $html .= '
 <hr>
 <table cellpadding="5" cellspacing="0" style="width: 100%;" border="0">';
-if($umsatzsteuer > 0) {
-	$netto = $gesamtpreis / (1+$umsatzsteuer);
-	$umsatzsteuer_betrag = $gesamtpreis - $netto;
+if($taxe > 0) {
+	$prix_nett = $prix_total / (1+$taxe);
+	$prix_taxer = $prix_total - $prix_nett;
 	
 	$html .= '
 			<tr>
-				<td colspan="3">Zwischensumme (Netto)</td>
-				<td style="text-align: center;">'.number_format($netto , 2, ',', '').' Euro</td>
+				<td colspan="3">Somme (prix_nett)</td>
+				<td style="text-align: center;">'.number_format($prix_nett , 2, ',', '').' MAD</td>
 			</tr>
 			<tr>
-				<td colspan="3">Mehrwertsteuer ('.intval($umsatzsteuer*100).'%)</td>
-				<td style="text-align: center;">'.number_format($umsatzsteuer_betrag, 2, ',', '').' Euro</td>
+				<td colspan="3">Taxe ('.intaxel($taxe*100).'%)</td>
+				<td style="text-align: center;">'.number_format($prix_taxer, 2, ',', '').' MAD</td>
 			</tr>';
 }
 
 $html .='
             <tr>
-                <td colspan="3"><b>Gesamtsumme: </b></td>
-                <td style="text-align: center;"><b>'.number_format($gesamtpreis, 2, ',', '').' Euro</b></td>
-            </tr>			
+                <td colspan="3"><b>Prix Total: </b></td>
+                <td style="text-align: center;"><b>'.number_format($prix_total, 2, ',', '').' MAD</b></td>
+            </tr>
         </table>
 <br><br><br>';
 
-if($umsatzsteuer == 0) {
-	$html .= 'Nach § 19 Abs. 1 UStG wird keine Umsatzsteuer berechnet.<br><br>';
+if($taxe == 0) {
+	$html .= 'Vente effectuer par Soufiane.<br><br>';
 }
 
-$html .= nl2br($rechnungs_footer);
+$html .= nl2br($facture_footer);
 
 
 
@@ -157,9 +130,9 @@ $pdf = new TCPDF(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8',
 
 // Dokumenteninformationen
 $pdf->SetCreator(PDF_CREATOR);
-$pdf->SetAuthor($pdfAuthor);
-$pdf->SetTitle('Rechnung '.$rechnungs_nummer);
-$pdf->SetSubject('Rechnung '.$rechnungs_nummer);
+$pdf->SetAuthor($auteur_pdf);
+$pdf->SetTitle('Facture '.$num_facture);
+$pdf->SetSubject('Facture '.$num_facture);
 
 
 // Header und Footer Informationen
