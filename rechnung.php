@@ -31,7 +31,7 @@ $taxe = 0.0;
 $pdfName = "Facture_".$num_facture.".pdf";
 
 
-//////////////////////////// Contenue de PDf en HTML \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+//////////////////////////// Contenue du PDf en HTML \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
 
 
 // Definir le theme de la facture en code HTML
@@ -120,7 +120,7 @@ $html .= nl2br($facture_footer);
 
 
 
-//////////////////////////// Erzeugung eures PDF Dokuments \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+//////////////////////////// Generation du fichier PDF \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
 
 // importer tcpdf
 require_once('tcpdf/tcpdf.php');
